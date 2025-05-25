@@ -1,22 +1,48 @@
 --[[
     ExpaLib - Библиотека для создания GUI
-    Основана на структуре "Expensive GUI" (https://github.com/Burstgalaxy/hub/blob/main/123.lua)
+    Основана на структуре "Expensive GUI"
     Автор адаптации: AI Ассистент
 ]]
 
 local ExpaLib = {}
 ExpaLib.__index = ExpaLib
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage") -- Для примера ChestDupe Help
+-- Попытка получить 'game' и сервисы более надежно
+local game = game or _G.game or getfenv(0).game -- Попытка найти 'game' в разных местах
+if not game or not game.GetService then
+    -- Если 'game' все еще не найдено или не имеет GetService, это серьезная проблема окружения
+    -- Попытка создать "заглушку", если это очень специфичный эксплойт
+    -- Но скорее всего, это не сработает для большинства сервисов.
+    warn("ExpaLib Critical Error: 'game' or 'game.GetService' is not available in the execution environment.")
+    -- Попытка получить сервисы через _G, если game.GetService не работает, но сервисы есть в _G
+    local Players = _G.Players or باي(function() return game:GetService("Players") end)()
+    local UserInputService = _G.UserInputService or باي(function() return game:GetService("UserInputService") end)()
+    local TweenService = _G.TweenService or باي(function() return game:GetService("TweenService") end)()
+    local RunService = _G.RunService or باي(function() return game:GetService("RunService") end)()
+    local ReplicatedStorage = _G.ReplicatedStorage or باي(function() return game:GetService("ReplicatedStorage") end)()
 
-local localPlayer = Players.LocalPlayer
+    if not Players then error("ExpaLib: Cannot find Players service.") end -- Прерываем, если критические сервисы не найдены
+else
+    -- Стандартный путь, если 'game.GetService' доступен
+    Players = game:GetService("Players")
+    UserInputService = game:GetService("UserInputService")
+    TweenService = game:GetService("TweenService")
+    RunService = game:GetService("RunService")
+    ReplicatedStorage = game:GetService("ReplicatedStorage")
+end
+
+-- Теперь используем определенные выше переменные
+local localPlayer = Players.LocalPlayer -- Эта строка была 20-й
+if not localPlayer then
+    -- Это может случиться, если скрипт выполняется в контексте Server Script,
+    -- или если эксплойт не предоставляет LocalPlayer должным образом.
+    -- Для GUI библиотеки это критично.
+    error("ExpaLib Critical Error: Players.LocalPlayer is nil. This library is intended for client-side execution.")
+end
 local playerGui = localPlayer:WaitForChild("PlayerGui")
 
-local G2L_Internal = {} -- Внутреннее хранилище элементов, если понадобится
+
+local G2L_Internal = {} 
 
 -- Основные настройки
 local DEFAULT_ICON_MODULE = "rbxassetid://136482807431952"
